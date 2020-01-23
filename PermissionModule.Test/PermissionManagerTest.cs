@@ -13,7 +13,7 @@ namespace PermissionModule.UnitTest
         private CallContext callContext;
         private IPropertyService propertyService;
         private Property property;
-        private IAuthorizationService authorisationManagerService;
+        private IAuthorizationService authorizationService;
         private IPermissionFactory permissionFactory;
         private IPermissionAuthorizer permissionAuthorizer;
 
@@ -199,7 +199,7 @@ namespace PermissionModule.UnitTest
             this.sut.GetPermissions(this.callContext);
 
             // Assert        
-            this.authorisationManagerService.Received(1).GetPrivilegesByUserProperty(this.callContext.LoginName,
+            this.authorizationService.Received(1).GetPrivilegesByUserProperty(this.callContext.LoginName,
                 this.callContext.PropertyId,
                 PrivilegeCategoryEnum.All);
         }
@@ -239,15 +239,17 @@ namespace PermissionModule.UnitTest
         {
             this.callContext = new CallContext()
             {
-                IsPrivate = false
+                LoginName = "login-name",
+                IsPrivate = false,
+                PropertyId = 3
             };
             this.property = new Property();
             this.propertyService = Substitute.For<IPropertyService>();
-            this.authorisationManagerService = Substitute.For<IAuthorizationService>();
+            this.authorizationService = Substitute.For<IAuthorizationService>();
             this.permissionAuthorizer = Substitute.For<IPermissionAuthorizer>();
-            this.permissionFactory = new PermissionFactory();
+            this.permissionFactory = new PermissionFactory(this.permissionAuthorizer);
             this.sut = new PermissionManager(this.propertyService,
-                this.authorisationManagerService,
+                this.authorizationService,
                 this.permissionFactory,
                 this.permissionAuthorizer);
         }
@@ -256,7 +258,7 @@ namespace PermissionModule.UnitTest
         {
             this.propertyService.GetPropertyById(this.callContext.PropertyId).Returns(this.property);
             this.permissionAuthorizer
-                .IsAuthorized(this.callContext, Arg.Any<IList<PropertyUserPrivilege>>(), Arg.Any<int>())
+                .IsAuthorized(Arg.Any<CallContext>(), Arg.Any<IList<PropertyUserPrivilege>>(), Arg.Any<int>())
                 .Returns(true);
         }
     }

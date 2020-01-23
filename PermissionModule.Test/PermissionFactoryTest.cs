@@ -1,3 +1,4 @@
+using NSubstitute;
 using NUnit.Framework;
 using PermissionModule.Permissions;
 using PermissionModule.Rule;
@@ -9,11 +10,13 @@ namespace PermissionModule.UnitTest
     {
         private PermissionFactory sut;
         private PermissionSettings permissionSettings;
+        private IPermissionAuthorizer permissionAuthorizer;
         
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            this.sut = new PermissionFactory();
+            this.permissionAuthorizer = Substitute.For<IPermissionAuthorizer>();
+            this.sut = new PermissionFactory(this.permissionAuthorizer);
         }
 
         [SetUp]
@@ -102,6 +105,25 @@ namespace PermissionModule.UnitTest
             // Assert
             RestrictedPermission restrictedPermission = (RestrictedPermission)permission;
             Assert.That(restrictedPermission.Rules, Has.Some.TypeOf<PropertyStatusPermissionRule>(), $"{action.ToString()} action type doesnt have RoomStatusPermissionRule");
+        }
+        
+        [TestCase(ActionEnum.DeleteProperty)]
+        [TestCase(ActionEnum.CheckBiddingStatus)]
+        [TestCase(ActionEnum.SendingDocuments)]
+        [TestCase(ActionEnum.ChangeBiddingPrice)]
+        [TestCase(ActionEnum.MenuScheduleViewing)]
+        [TestCase(ActionEnum.MakeOffer)]
+        public void GetPermissionModel_WhenActionTypeHasCustomerPermissionRule_ShouldPermissionRuleHasGroupPermissionRule(ActionEnum action)
+        {
+            // Arrange
+            this.permissionSettings.Action = action;
+			
+            // Act
+            var permissionModel = this.sut.GetPermission(this.permissionSettings);
+
+            // Assert
+            RestrictedPermission restrictedPermission = (RestrictedPermission)permissionModel;
+            Assert.That(restrictedPermission.Rules, Has.Some.TypeOf<CostumerPermissionRule>(), $"{action.ToString()} action type doesnt have GroupPermissionRuleTest");
         }
     }
 }

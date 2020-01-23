@@ -24,7 +24,6 @@ namespace PermissionModule
 		public List<PermissionModel> GetPermissions(CallContext cc)
 		{
 			var permissionModel = this.CreatePermissionModel(cc);
-			this.ApplyCostumerRelatedPermissions(cc, permissionModel);
 			// this.ApplyBiddingRelatedPermission(property, permissionModel);
 			return permissionModel;
 		}
@@ -109,20 +108,20 @@ namespace PermissionModule
 		private List<PermissionModel> CreatePermissionModel(CallContext cc)
 		{
 			var permissionModels = new List<PermissionModel>();
-
+			var permissionSettings = GetPermissionSettings(cc);
+			
 			foreach (ActionEnum action in Enum.GetValues(typeof(ActionEnum)))
 			{
-				var permissionModel = CreatePermissionModel(cc, action);
+				permissionSettings.Action = action;
+				var permissionModel = CreatePermissionModel(permissionSettings);
 				permissionModels.Add(permissionModel);
 			}
 
 			return permissionModels;
 		}
 
-		private PermissionModel CreatePermissionModel(CallContext cc, ActionEnum action)
+		private PermissionModel CreatePermissionModel(PermissionSettings permissionSettings)
 		{
-			var permissionSettings = GetPermissionSettings(cc);
-			permissionSettings.Action = action;
 			var permission = this.permissionFactory.GetPermission(permissionSettings);
 
 			if (permission is RestrictedPermission)
@@ -133,7 +132,7 @@ namespace PermissionModule
 			
 			var permissionModel = new PermissionModel
 			{
-				Action = action,
+				Action = permissionSettings.Action,
 				IsEnabled = permission.IsEnabled,
 				IsVisible = permission.IsVisible
 			};
@@ -147,6 +146,9 @@ namespace PermissionModule
 			{
 				IsPrivate = cc.IsPrivate,
 				PropertyStatusTypeId = property.StatusId,
+				CallContext = cc,
+				PrivilegesByUserRoom = this.authorizationService.GetPrivilegesByUserProperty(cc.LoginName, cc.PropertyId,
+					PrivilegeCategoryEnum.All)
 			};
 			return permissionSettings;
 		}
