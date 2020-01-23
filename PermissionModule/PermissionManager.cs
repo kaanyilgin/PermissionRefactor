@@ -8,11 +8,13 @@ namespace PermissionModule
 	{
 		private readonly IPropertyService propertyService;
 		private readonly IAuthorizationService authorizationService;
+		private readonly IPermissionFactory permissionFactory;
 
-		public PermissionManager(IPropertyService propertyService, IAuthorizationService authorizationService)
+		public PermissionManager(IPropertyService propertyService, IAuthorizationService authorizationService, IPermissionFactory permissionFactory)
 		{
 			this.propertyService = propertyService;
 			this.authorizationService = authorizationService;
+			this.permissionFactory = permissionFactory;
 		}
 
 		public List<PermissionModel> GetPermissions(CallContext cc)
@@ -115,25 +117,21 @@ namespace PermissionModule
 
 		private List<PermissionModel> CreatePermissionModel(CallContext cc)
 		{
-			const bool DEFAULT_IS_ENABLED_VALUE = true;
-			const bool DEFAULT_IS_VISIBLE_VALUE = true;
-
-			var permissions = new List<PermissionModel>();
+			var permissionModels = new List<PermissionModel>();
 
 			foreach (ActionEnum action in Enum.GetValues(typeof(ActionEnum)))
 			{
-				var permission = new PermissionModel
+				var permission = this.permissionFactory.GetPermission(action, cc.IsPrivate);
+				var permissionModel = new PermissionModel
 				{
 					Action = action,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc, 2, action,
-						DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc, 1, action,
-						DEFAULT_IS_VISIBLE_VALUE)
+					IsEnabled = permission.IsEnabled,
+					IsVisible = permission.IsVisible
 				};
-				permissions.Add(permission);
+				permissionModels.Add(permissionModel);
 			}
 
-			return permissions;
+			return permissionModels;
 		}
 		
 		private void ApplyPropertyStatusRelatedPermissions(int statusId, IEnumerable<PermissionModel> permissionModel)
@@ -186,60 +184,7 @@ namespace PermissionModule
 					break;
 			}
 		}
-
-		private bool ApplyPropertyTypeRelatedPermissions(CallContext cc, int toApplayFor, ActionEnum actionEnum, bool currentValue = true)
-		{
-			//ToApplayFor = 1 : IsVisible
-			//ToApplayFor = 2 : IsEnabled
-			var result = true;
-			switch (actionEnum)
-			{
-				case ActionEnum.MenuViewProperty:
-					break;
-				case ActionEnum.ShareProperty:
-					break;
-				case ActionEnum.DeleteProperty:
-					result = !cc.IsPrivate;
-					break;
-				case ActionEnum.CheckBiddingStatus:
-					result = !cc.IsPrivate;
-					break;
-				case ActionEnum.SendingDocuments:
-					break;
-				case ActionEnum.ChangeBiddingPrice:
-					result = !cc.IsPrivate;
-					break;
-				case ActionEnum.MenuScheduleViewing:
-					break;
-				case ActionEnum.ContextMenuMoreInformation:
-					break;
-				case ActionEnum.MakeOffer:
-					result = !cc.IsPrivate;
-					break;
-				case ActionEnum.AddPhoto:
-					break;
-				case ActionEnum.MenuAskQuestion:
-					break;
-				case ActionEnum.MenuReplyQuestion:
-					break;
-				case ActionEnum.MenuAddFavourites:
-					break;
-				case ActionEnum.MessageToAgent:
-					break;
-				case ActionEnum.ViewPhoneCallOfAgent:
-					break;
-				case ActionEnum.DownloadBrochure:
-					break;
-				case ActionEnum.ViewLocation:
-					break;
-				case ActionEnum.RequestEnergyLabel:
-					break;
-				case ActionEnum.Request360Video:
-					break;
-			}
-			return result & currentValue;
-		}
-
+		
 		private void ApplyBiddingRelatedPermission(Property property, List<PermissionModel> permissionModel)
 		{
 			if (property.IsBiddingLocked.GetValueOrDefault() == false)

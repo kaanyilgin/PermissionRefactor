@@ -13,6 +13,7 @@ namespace PermissionModule.UnitTest
         private IPropertyService propertyService;
         private Property property;
         private IAuthorizationService authorisationManagerService;
+        private IPermissionFactory permissionFactory;
 
         [SetUp]
         public void SetUp()
@@ -33,7 +34,7 @@ namespace PermissionModule.UnitTest
             // Assert
             Assert.That(permissionModels, Has.Count.EqualTo(actionCount));
         }
-        
+
         [TestCase(ActionEnum.MenuViewProperty)]
         [TestCase(ActionEnum.ShareProperty)]
         [TestCase(ActionEnum.DeleteProperty)]
@@ -60,9 +61,9 @@ namespace PermissionModule.UnitTest
 
             // Assert
             var actionPermission = permissionModels.FirstOrDefault(x => x.Action == actionEnum);
-            Assert.That(actionPermission, Is.Not.Null, $"There is no permission model for action type: {actionEnum}" );
+            Assert.That(actionPermission, Is.Not.Null, $"There is no permission model for action type: {actionEnum}");
         }
-        
+
         [TestCase(ActionEnum.MenuViewProperty)]
         [TestCase(ActionEnum.ShareProperty)]
         [TestCase(ActionEnum.SendingDocuments)]
@@ -78,20 +79,21 @@ namespace PermissionModule.UnitTest
         [TestCase(ActionEnum.ViewLocation)]
         [TestCase(ActionEnum.RequestEnergyLabel)]
         [TestCase(ActionEnum.Request360Video)]
-        public void CreatePermissionModel_WhenActionEnumHasNoRestriction_ShouldIsVisibleAndIsEnableAlwaysEqualToTrue(ActionEnum actionEnum)
+        public void CreatePermissionModel_WhenActionEnumHasNoRestriction_ShouldIsVisibleAndIsEnableAlwaysEqualToTrue(
+            ActionEnum actionEnum)
         {
             //Arrange
             this.callContext.IsPrivate = true;
-            
+
             // Act
             var permissionModels = this.sut.GetPermissions(this.callContext);
 
             // Assert
             var actionPermission = permissionModels.FirstOrDefault(x => x.Action == actionEnum);
-            Assert.That(actionPermission.IsEnabled, Is.True, $"Is enabled is not true for action type: {actionEnum}" );
-            Assert.That(actionPermission.IsVisible, Is.True, $"Is enabled is not true for action type: {actionEnum}" );
+            Assert.That(actionPermission.IsEnabled, Is.True, $"Is enabled is not true for action type: {actionEnum}");
+            Assert.That(actionPermission.IsVisible, Is.True, $"Is enabled is not true for action type: {actionEnum}");
         }
-        
+
         [TestCase(ActionEnum.DeleteProperty, true)]
         [TestCase(ActionEnum.DeleteProperty, false)]
         [TestCase(ActionEnum.MakeOffer, true)]
@@ -100,11 +102,13 @@ namespace PermissionModule.UnitTest
         [TestCase(ActionEnum.ChangeBiddingPrice, false)]
         [TestCase(ActionEnum.CheckBiddingStatus, true)]
         [TestCase(ActionEnum.CheckBiddingStatus, false)]
-        public void CreatePermissionModel_WhenActionTypeDependsOnIsPrivate_ShouldIsEnabledAndIsVisibleAreEqualToInverseOfIsPrivate(ActionEnum actionType, bool isPublished)
+        public void
+            CreatePermissionModel_WhenActionTypeDependsOnIsPrivate_ShouldIsEnabledAndIsVisibleAreEqualToInverseOfIsPrivate(
+                ActionEnum actionType, bool isPublished)
         {
             // Arrange
             this.callContext.IsPrivate = isPublished;
-            
+
             // Act
             var permissionModels = this.sut.GetPermissions(this.callContext);
 
@@ -121,9 +125,11 @@ namespace PermissionModule.UnitTest
             this.property = new Property();
             this.propertyService = Substitute.For<IPropertyService>();
             this.authorisationManagerService = Substitute.For<IAuthorizationService>();
-            this.sut = new PermissionManager(this.propertyService, this.authorisationManagerService);
+            this.permissionFactory = new PermissionFactory();
+            this.sut = new PermissionManager(this.propertyService, this.authorisationManagerService,
+                this.permissionFactory);
         }
-        
+
         private void SetupMocks()
         {
             this.propertyService.GetPropertyById(this.callContext.PropertyId).Returns(this.property);
