@@ -11,6 +11,7 @@ namespace PermissionModule
         private PrivatePermissionRule privatePermissionRule;
         private PropertyStatusPermissionRule propertyStatusRule;
         private CostumerPermissionRule costumerPermissionRule;
+        private BiddingLockedPermissionRule biddingLockedPermissionRule;
 
         public PermissionFactory(IPermissionAuthorizer permissionAuthorizer)
         {
@@ -18,6 +19,7 @@ namespace PermissionModule
             this.privatePermissionRule = new PrivatePermissionRule();
             this.propertyStatusRule = new PropertyStatusPermissionRule();
             this.costumerPermissionRule = new CostumerPermissionRule(this.permissionAuthorizer);
+            this.biddingLockedPermissionRule = new BiddingLockedPermissionRule();
         }
 
         public Permission GetPermission(PermissionSettings permissionSettings)
@@ -49,11 +51,16 @@ namespace PermissionModule
                     break;    
                 case ActionEnum.DeleteProperty:
                 case ActionEnum.CheckBiddingStatus:
+                    rules.Add(this.privatePermissionRule);
+                    rules.Add(this.propertyStatusRule);
+                    rules.Add(this.costumerPermissionRule);
+                    break;
                 case ActionEnum.ChangeBiddingPrice:
                 case ActionEnum.MakeOffer:
                     rules.Add(this.privatePermissionRule);
                     rules.Add(this.propertyStatusRule);
                     rules.Add(this.costumerPermissionRule);
+                    rules.Add(this.biddingLockedPermissionRule);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(permissionSettings.Action), permissionSettings.Action, "Action enum is out of range");

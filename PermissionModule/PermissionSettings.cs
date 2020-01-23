@@ -9,5 +9,6 @@ namespace PermissionModule
         public int PropertyStatusTypeId { get; set; }
         public CallContext CallContext { get; set; }
         public IList<PropertyUserPrivilege> PrivilegesByUserRoom { get; set; }
+        public bool IsBiddingLocked { get; set; }
     }
 }

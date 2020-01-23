@@ -24,7 +24,6 @@ namespace PermissionModule
 		public List<PermissionModel> GetPermissions(CallContext cc)
 		{
 			var permissionModel = this.CreatePermissionModel(cc);
-			this.ApplyBiddingRelatedPermission(cc.PropertyId, permissionModel);
 			return permissionModel;
 		}
 		
@@ -52,7 +51,8 @@ namespace PermissionModule
 				PropertyStatusTypeId = property.StatusId,
 				CallContext = cc,
 				PrivilegesByUserRoom = this.authorizationService.GetPrivilegesByUserProperty(cc.LoginName, cc.PropertyId,
-					PrivilegeCategoryEnum.All)
+					PrivilegeCategoryEnum.All),
+				IsBiddingLocked = property.IsBiddingLocked.GetValueOrDefault()
 			};
 			return permissionSettings;
 		}
@@ -74,29 +74,6 @@ namespace PermissionModule
 				IsVisible = permission.IsVisible
 			};
 			return permissionModel;
-		}
-
-		private void ApplyBiddingRelatedPermission(int propertyId, List<PermissionModel> permissionModel)
-		{
-			Property property = this.propertyService.GetPropertyById(propertyId);
-			if (property.IsBiddingLocked.GetValueOrDefault() == false)
-			{
-				return;
-			}
-
-			var biddingRelatedActions = permissionModel.Where(x => x.Action == ActionEnum.ChangeBiddingPrice
-																		 || x.Action == ActionEnum.MakeOffer);
-
-			if (biddingRelatedActions == null || biddingRelatedActions.Any() == false)
-			{
-				return;
-			}
-
-			foreach (var action in biddingRelatedActions)
-			{
-				action.IsEnabled = false;
-				action.IsVisible = false;
-			}
 		}
 	}
 }

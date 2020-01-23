@@ -235,8 +235,6 @@ namespace PermissionModule.UnitTest
                 $"{action.ToString()} IsEnabled is not correct ");
         }
 
-        
-
         [TestCase(ActionEnum.MakeOffer)]
         [TestCase(ActionEnum.ChangeBiddingPrice)]
         public void GetPermissions_WhenActionTypeDependsOnIsBiddingLockedAndIsBiddingLockedIsTrue_ShouldIsEnabledAndIsVisibleIsEqualToFalse(

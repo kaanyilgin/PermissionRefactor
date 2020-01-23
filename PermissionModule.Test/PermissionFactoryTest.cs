@@ -125,5 +125,20 @@ namespace PermissionModule.UnitTest
             RestrictedPermission restrictedPermission = (RestrictedPermission)permissionModel;
             Assert.That(restrictedPermission.Rules, Has.Some.TypeOf<CostumerPermissionRule>(), $"{action.ToString()} action type doesnt have GroupPermissionRuleTest");
         }
+        
+        [TestCase(ActionEnum.MakeOffer)]
+        [TestCase(ActionEnum.ChangeBiddingPrice)]
+        public void GetPermissionModel_WhenActionTypeHasBiddingLockedPermissionRule_ShouldPermissionRuleHasBiddingLockedPermissionRule(ActionEnum action)
+        {
+            // Arrange
+            this.permissionSettings.Action = action;
+			
+            // Act
+            var permissionModel = this.sut.GetPermission(this.permissionSettings);
+
+            // Assert
+            RestrictedPermission restrictedPermission = (RestrictedPermission)permissionModel;
+            Assert.That(restrictedPermission.Rules, Has.Some.TypeOf<BiddingLockedPermissionRule>(), $"{action.ToString()} action type doesnt have BiddingLockedPermissionRule");
+        }
     }
 }
