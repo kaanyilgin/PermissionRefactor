@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NSubstitute;
 using NUnit.Framework;
@@ -14,6 +15,7 @@ namespace PermissionModule.UnitTest
         private Property property;
         private IAuthorizationService authorisationManagerService;
         private IPermissionFactory permissionFactory;
+        private IPermissionAuthorizer permissionAuthorizer;
 
         [SetUp]
         public void SetUp()
@@ -82,7 +84,7 @@ namespace PermissionModule.UnitTest
             // Arrange
             this.callContext.IsPrivate = true;
             this.property.StatusId = 5;
-            
+
             // Act
             var permissionModels = this.sut.GetPermissions(this.callContext);
 
@@ -115,7 +117,7 @@ namespace PermissionModule.UnitTest
             Assert.That(actionPermission.IsEnabled, Is.EqualTo(!isPrivate));
             Assert.That(actionPermission.IsVisible, Is.EqualTo(!isPrivate));
         }
-        
+
         [TestCase(ActionEnum.MakeOffer)]
         [TestCase(ActionEnum.MenuScheduleViewing)]
         [TestCase(ActionEnum.CheckBiddingStatus)]
@@ -123,7 +125,9 @@ namespace PermissionModule.UnitTest
         [TestCase(ActionEnum.SendingDocuments)]
         [TestCase(ActionEnum.DeleteProperty)]
         [TestCase(ActionEnum.AddPhoto)]
-        public void GetPermission_WhenActionTypeDependsOnPropertyStatusIs5_ShouldIsEnabledEqualToFalseAndIsVisibleIsTrue(ActionEnum action)
+        public void
+            GetPermission_WhenActionTypeDependsOnPropertyStatusIs5_ShouldIsEnabledEqualToFalseAndIsVisibleIsTrue(
+                ActionEnum action)
         {
             // Arrange
             this.property.StatusId = 5;
@@ -163,7 +167,7 @@ namespace PermissionModule.UnitTest
         {
             // Arrange
             this.callContext.IsPrivate = true;
-            
+
             // Act
             var permissionSettings = this.sut.GetPermissionSettings(this.callContext);
 
@@ -176,12 +180,59 @@ namespace PermissionModule.UnitTest
         {
             // Arrange
             this.property.StatusId = 3;
-            
+
             // Act
             var permissionSettings = this.sut.GetPermissionSettings(this.callContext);
 
             // Assert
             Assert.That(permissionSettings.PropertyStatusTypeId, Is.EqualTo(this.property.StatusId));
+        }
+
+        [Test]
+        public void
+            GetPermissions_WhenActionTypeDependsOnCustomer_ShouldAuthorisationManagerServiceGetPrivilegesByUserCallecOnce()
+        {
+            // Arrange
+            this.callContext.IsPrivate = false;
+
+            // Act
+            this.sut.GetPermissions(this.callContext);
+
+            // Assert        
+            this.authorisationManagerService.Received(1).GetPrivilegesByUserProperty(this.callContext.LoginName,
+                this.callContext.PropertyId,
+                PrivilegeCategoryEnum.All);
+        }
+
+        [TestCase(ActionEnum.DeleteProperty, true)]
+        [TestCase(ActionEnum.DeleteProperty, false)]
+        [TestCase(ActionEnum.CheckBiddingStatus, true)]
+        [TestCase(ActionEnum.CheckBiddingStatus, false)]
+        [TestCase(ActionEnum.SendingDocuments, true)]
+        [TestCase(ActionEnum.SendingDocuments, false)]
+        [TestCase(ActionEnum.ChangeBiddingPrice, true)]
+        [TestCase(ActionEnum.ChangeBiddingPrice, false)]
+        [TestCase(ActionEnum.MenuScheduleViewing, true)]
+        [TestCase(ActionEnum.MenuScheduleViewing, false)]
+        [TestCase(ActionEnum.MakeOffer, true)]
+        [TestCase(ActionEnum.MakeOffer, false)]
+        public void GetPermissions_WhenActionTypeDependsOnCustomer_ShouldIsEnabledAndIsVisibleIsEqualToIsAuthorized(
+            ActionEnum action, bool isAuthorized)
+        {
+            // Arrange
+            this.permissionAuthorizer
+                .IsAuthorized(Arg.Any<CallContext>(), Arg.Any<IList<PropertyUserPrivilege>>(), Arg.Any<int>())
+                .Returns(isAuthorized);
+
+            // Act
+            var smartSearchPermissions = this.sut.GetPermissions(this.callContext);
+
+            // Assert
+            var smartSearchPermission = smartSearchPermissions.First(x => x.Action == action);
+            Assert.That(smartSearchPermission.IsVisible, Is.EqualTo(isAuthorized),
+                $"{action.ToString()} IsVisible is not correct");
+            Assert.That(smartSearchPermission.IsEnabled, Is.EqualTo(isAuthorized),
+                $"{action.ToString()} IsEnabled is not correct ");
         }
 
         private void InitializeVariables()
@@ -190,20 +241,23 @@ namespace PermissionModule.UnitTest
             {
                 IsPrivate = false
             };
-            this.property = new Property()
-            {
-                StatusId = 4
-            };
+            this.property = new Property();
             this.propertyService = Substitute.For<IPropertyService>();
             this.authorisationManagerService = Substitute.For<IAuthorizationService>();
+            this.permissionAuthorizer = Substitute.For<IPermissionAuthorizer>();
             this.permissionFactory = new PermissionFactory();
-            this.sut = new PermissionManager(this.propertyService, this.authorisationManagerService,
-                this.permissionFactory);
+            this.sut = new PermissionManager(this.propertyService,
+                this.authorisationManagerService,
+                this.permissionFactory,
+                this.permissionAuthorizer);
         }
 
         private void SetupMocks()
         {
             this.propertyService.GetPropertyById(this.callContext.PropertyId).Returns(this.property);
+            this.permissionAuthorizer
+                .IsAuthorized(this.callContext, Arg.Any<IList<PropertyUserPrivilege>>(), Arg.Any<int>())
+                .Returns(true);
         }
     }
 }

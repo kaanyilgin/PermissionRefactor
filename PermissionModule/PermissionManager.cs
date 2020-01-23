@@ -10,18 +10,21 @@ namespace PermissionModule
 		private readonly IPropertyService propertyService;
 		private readonly IAuthorizationService authorizationService;
 		private readonly IPermissionFactory permissionFactory;
-
-		public PermissionManager(IPropertyService propertyService, IAuthorizationService authorizationService, IPermissionFactory permissionFactory)
+		private readonly IPermissionAuthorizer permissionAuthorizer;
+		
+		public PermissionManager(IPropertyService propertyService, IAuthorizationService authorizationService,
+			IPermissionFactory permissionFactory, IPermissionAuthorizer permissionAuthorizer)
 		{
 			this.propertyService = propertyService;
 			this.authorizationService = authorizationService;
 			this.permissionFactory = permissionFactory;
+			this.permissionAuthorizer = permissionAuthorizer;
 		}
 
 		public List<PermissionModel> GetPermissions(CallContext cc)
 		{
 			var permissionModel = this.CreatePermissionModel(cc);
-			// this.ApplyCostumerRelatedPermissions(cc, permissionModel);
+			this.ApplyCostumerRelatedPermissions(cc, permissionModel);
 			// this.ApplyBiddingRelatedPermission(property, permissionModel);
 			return permissionModel;
 		}
@@ -100,18 +103,7 @@ namespace PermissionModule
 
 		private bool IsAuthorized(CallContext cc, List<PropertyUserPrivilege> userPrivilegeList, int privilegeId)
 		{
-			var isAuthorized = false;
-
-			if (cc.IsSpecialCustomer)
-			{
-				isAuthorized = userPrivilegeList.Any(privilege => (privilege.PrivilegeId == privilegeId));
-			}
-			else
-			{
-				isAuthorized = userPrivilegeList.Any(privilege => (privilege.PrivilegeId == privilegeId) && ((privilege.PropertyId == cc.PropertyId) || privilege.IsSystemPrivilege.Value));
-			}
-
-			return isAuthorized;
+			return this.permissionAuthorizer.IsAuthorized(cc, userPrivilegeList, privilegeId);
 		}
 
 		private List<PermissionModel> CreatePermissionModel(CallContext cc)
