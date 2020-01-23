@@ -66,10 +66,7 @@ namespace PermissionModule.UnitTest
 
         [TestCase(ActionEnum.MenuViewProperty)]
         [TestCase(ActionEnum.ShareProperty)]
-        [TestCase(ActionEnum.SendingDocuments)]
-        [TestCase(ActionEnum.MenuScheduleViewing)]
         [TestCase(ActionEnum.ContextMenuMoreInformation)]
-        [TestCase(ActionEnum.AddPhoto)]
         [TestCase(ActionEnum.MenuAskQuestion)]
         [TestCase(ActionEnum.MenuReplyQuestion)]
         [TestCase(ActionEnum.MenuAddFavourites)]
@@ -82,9 +79,10 @@ namespace PermissionModule.UnitTest
         public void CreatePermissionModel_WhenActionEnumHasNoRestriction_ShouldIsVisibleAndIsEnableAlwaysEqualToTrue(
             ActionEnum actionEnum)
         {
-            //Arrange
+            // Arrange
             this.callContext.IsPrivate = true;
-
+            this.property.StatusId = 5;
+            
             // Act
             var permissionModels = this.sut.GetPermissions(this.callContext);
 
@@ -104,24 +102,60 @@ namespace PermissionModule.UnitTest
         [TestCase(ActionEnum.CheckBiddingStatus, false)]
         public void
             CreatePermissionModel_WhenActionTypeDependsOnIsPrivate_ShouldIsEnabledAndIsVisibleAreEqualToInverseOfIsPrivate(
-                ActionEnum actionType, bool isPublished)
+                ActionEnum actionType, bool isPrivate)
         {
             // Arrange
-            this.callContext.IsPrivate = isPublished;
+            this.callContext.IsPrivate = isPrivate;
 
             // Act
             var permissionModels = this.sut.GetPermissions(this.callContext);
 
             // Assert
             var actionPermission = permissionModels.First(x => x.Action == actionType);
-            Assert.That(actionPermission.IsEnabled, Is.EqualTo(!isPublished));
-            Assert.That(actionPermission.IsVisible, Is.EqualTo(!isPublished));
+            Assert.That(actionPermission.IsEnabled, Is.EqualTo(!isPrivate));
+            Assert.That(actionPermission.IsVisible, Is.EqualTo(!isPrivate));
         }
 
+        [Test]
+        public void GetPermission_ShouldPropertyServiceGetPropertyByIdCalledOnce()
+        {
+            // Act
+            var smartSearchPermissions = this.sut.GetPermissions(this.callContext);
+
+            // Assert
+            this.propertyService.Received(1).GetPropertyById(this.callContext.PropertyId);
+        }
+
+        [TestCase(ActionEnum.MakeOffer)]
+        [TestCase(ActionEnum.MenuScheduleViewing)]
+        [TestCase(ActionEnum.CheckBiddingStatus)]
+        [TestCase(ActionEnum.ChangeBiddingPrice)]
+        [TestCase(ActionEnum.SendingDocuments)]
+        [TestCase(ActionEnum.DeleteProperty)]
+        [TestCase(ActionEnum.AddPhoto)]
+        public void
+            GetPermission_WhenActionTypeDependsOnPropertyStatusIs5_ShouldIsEnabledEqualToFalseAndIsVisibleIsTrue(
+                ActionEnum action)
+        {
+            // Arrange
+            this.property.StatusId = 5;
+            this.callContext.IsPrivate = false;
+
+            // Act
+            var smartSearchPermissions = this.sut.GetPermissions(this.callContext);
+
+            // Assert
+            var permission = smartSearchPermissions.FirstOrDefault(x => x.Action == action);
+            Assert.That(permission.IsEnabled, Is.False, $"{action.ToString()} IsEnable is not false");
+            Assert.That(permission.IsVisible, Is.True, $"{action.ToString()} IsVisible is not true");
+        }
 
         private void InitializeVariables()
         {
-            this.callContext = new CallContext();
+            this.callContext = new CallContext()
+            {
+                IsPrivate = false
+            };
             this.property = new Property();
             this.propertyService = Substitute.For<IPropertyService>();
             this.authorisationManagerService = Substitute.For<IAuthorizationService>();

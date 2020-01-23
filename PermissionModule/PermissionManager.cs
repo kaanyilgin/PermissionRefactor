@@ -19,9 +19,9 @@ namespace PermissionModule
 
 		public List<PermissionModel> GetPermissions(CallContext cc)
 		{
-			// var property = this.propertyService.GetPropertyById(cc.PropertyId);
 			var permissionModel = this.CreatePermissionModel(cc);
-			// this.ApplyPropertyStatusRelatedPermissions(property.StatusId, permissionModel);
+			var property = this.propertyService.GetPropertyById(cc.PropertyId);
+			this.ApplyPropertyStatusRelatedPermissions(property.StatusId, permissionModel);
 			// this.ApplyCostumerRelatedPermissions(cc, permissionModel);
 			// this.ApplyBiddingRelatedPermission(property, permissionModel);
 			return permissionModel;
