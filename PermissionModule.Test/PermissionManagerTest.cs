@@ -267,8 +267,7 @@ namespace PermissionModule.UnitTest
             this.permissionFactory = new PermissionFactory(this.permissionAuthorizer);
             this.sut = new PermissionManager(this.propertyService,
                 this.authorizationService,
-                this.permissionFactory,
-                this.permissionAuthorizer);
+                this.permissionFactory);
         }
 
         private void SetupMocks()

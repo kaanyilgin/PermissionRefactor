@@ -10,24 +10,16 @@ namespace PermissionModule
 		private readonly IPropertyService propertyService;
 		private readonly IAuthorizationService authorizationService;
 		private readonly IPermissionFactory permissionFactory;
-		private readonly IPermissionAuthorizer permissionAuthorizer;
 		
 		public PermissionManager(IPropertyService propertyService, IAuthorizationService authorizationService,
-			IPermissionFactory permissionFactory, IPermissionAuthorizer permissionAuthorizer)
+			IPermissionFactory permissionFactory)
 		{
 			this.propertyService = propertyService;
 			this.authorizationService = authorizationService;
 			this.permissionFactory = permissionFactory;
-			this.permissionAuthorizer = permissionAuthorizer;
 		}
 
 		public List<PermissionModel> GetPermissions(CallContext cc)
-		{
-			var permissionModel = this.CreatePermissionModel(cc);
-			return permissionModel;
-		}
-		
-		private List<PermissionModel> CreatePermissionModel(CallContext cc)
 		{
 			var permissionModels = new List<PermissionModel>();
 			var permissionSettings = GetPermissionSettings(cc);
