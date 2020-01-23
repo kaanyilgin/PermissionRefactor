@@ -1,13 +1,24 @@
 using System;
+using System.Collections.Generic;
 using PermissionModule.Permissions;
+using PermissionModule.Rule;
 
 namespace PermissionModule
 {
     public class PermissionFactory : IPermissionFactory
     {
-        public Permission GetPermission(ActionEnum action, bool isPrivate)
+        private PrivatePermissionRule privatePermissionRule;
+
+        public PermissionFactory()
         {
-            switch (action)
+            this.privatePermissionRule = new PrivatePermissionRule();
+        }
+
+        public Permission GetPermission(PermissionSettings permissionSettings)
+        {
+            var rules = new List<IPermissionRule>();
+            
+            switch (permissionSettings.Action)
             {
                 case ActionEnum.MenuViewProperty:
                 case ActionEnum.ShareProperty:
@@ -29,12 +40,11 @@ namespace PermissionModule
                 case ActionEnum.CheckBiddingStatus:
                 case ActionEnum.ChangeBiddingPrice:
                 case ActionEnum.MakeOffer:
-                    var restrictedPermission = new RestrictedPermission();
-                    restrictedPermission.IsEnabled = !isPrivate;
-                    restrictedPermission.IsVisible = !isPrivate;
+                    rules.Add(privatePermissionRule);
+                    var restrictedPermission = new RestrictedPermission(permissionSettings, rules);
                     return restrictedPermission;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(action), action, "Action enum is out of range");
+                    throw new ArgumentOutOfRangeException(nameof(permissionSettings.Action), permissionSettings.Action, "Action enum is out of range");
             }
         }
     }

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using PermissionModule.Permissions;
 
 namespace PermissionModule
 {
-    public class PermissionManager
+	public class PermissionManager
 	{
 		private readonly IPropertyService propertyService;
 		private readonly IAuthorizationService authorizationService;
@@ -121,19 +122,37 @@ namespace PermissionModule
 
 			foreach (ActionEnum action in Enum.GetValues(typeof(ActionEnum)))
 			{
-				var permission = this.permissionFactory.GetPermission(action, cc.IsPrivate);
-				var permissionModel = new PermissionModel
-				{
-					Action = action,
-					IsEnabled = permission.IsEnabled,
-					IsVisible = permission.IsVisible
-				};
+				var permissionModel = CreatePermissionModel(cc, action);
 				permissionModels.Add(permissionModel);
 			}
 
 			return permissionModels;
 		}
-		
+
+		private PermissionModel CreatePermissionModel(CallContext cc, ActionEnum action)
+		{
+			var permissionSettings = new PermissionSettings()
+			{
+				IsPrivate = cc.IsPrivate,
+				Action = action
+			};
+			var permission = this.permissionFactory.GetPermission(permissionSettings);
+
+			if (permission is RestrictedPermission)
+			{
+				var restrictedPermission = (RestrictedPermission)permission;
+				restrictedPermission.ApplyRules();
+			}
+			
+			var permissionModel = new PermissionModel
+			{
+				Action = action,
+				IsEnabled = permission.IsEnabled,
+				IsVisible = permission.IsVisible
+			};
+			return permissionModel;
+		}
+
 		private void ApplyPropertyStatusRelatedPermissions(int statusId, IEnumerable<PermissionModel> permissionModel)
 		{
 

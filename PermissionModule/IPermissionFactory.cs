@@ -4,6 +4,6 @@ namespace PermissionModule
 {
     public interface IPermissionFactory
     {
-        Permission GetPermission(ActionEnum action, bool isPrivate);
+        Permissions.Permission GetPermission(PermissionSettings permissionSettings);
     }
 }

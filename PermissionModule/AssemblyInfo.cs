@@ -1,3 +1,3 @@
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("PermissionModule.UnitTest")]
+[assembly: InternalsVisibleTo("PermissionModule.Test")]
