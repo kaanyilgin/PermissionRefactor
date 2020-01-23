@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace PermissionModule
 {
-	public class PermissionManager
+    public class PermissionManager
 	{
 		private readonly IPropertyService propertyService;
 		private readonly IAuthorizationService authorizationService;
@@ -117,145 +118,24 @@ namespace PermissionModule
 			const bool DEFAULT_IS_ENABLED_VALUE = true;
 			const bool DEFAULT_IS_VISIBLE_VALUE = true;
 
-			var permissionModel = new List<PermissionModel>()
+			var permissions = new List<PermissionModel>();
+
+			foreach (ActionEnum action in Enum.GetValues(typeof(ActionEnum)))
 			{
-				#region ContextMenu Actions
+				var permission = new PermissionModel
+				{
+					Action = action,
+					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc, 2, action,
+						DEFAULT_IS_ENABLED_VALUE),
+					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc, 1, action,
+						DEFAULT_IS_VISIBLE_VALUE)
+				};
+				permissions.Add(permission);
+			}
 
-				new PermissionModel()
-				{
-					Action = ActionEnum.DeleteProperty,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.DeleteProperty, DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.DeleteProperty, DEFAULT_IS_VISIBLE_VALUE)
-				},
-				new PermissionModel()
-				{
-					Action = ActionEnum.SendingDocuments,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.SendingDocuments, DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.SendingDocuments, DEFAULT_IS_VISIBLE_VALUE)
-				},
-				new PermissionModel()
-				{
-					Action = ActionEnum.MenuScheduleViewing,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.MenuScheduleViewing, DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.MenuScheduleViewing, DEFAULT_IS_VISIBLE_VALUE)
-				},
-				new PermissionModel()
-				{
-					Action = ActionEnum.MakeOffer,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.MakeOffer, DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.MakeOffer, DEFAULT_IS_VISIBLE_VALUE)
-				},
-				new PermissionModel()
-				{
-					Action = ActionEnum.ChangeBiddingPrice,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.ChangeBiddingPrice, DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.ChangeBiddingPrice, DEFAULT_IS_VISIBLE_VALUE)
-				},
-				new PermissionModel()
-				{
-					Action = ActionEnum.ContextMenuMoreInformation,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.ContextMenuMoreInformation, DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.ContextMenuMoreInformation, DEFAULT_IS_VISIBLE_VALUE)
-				},
-				new PermissionModel()
-				{
-					Action = ActionEnum.CheckBiddingStatus,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.CheckBiddingStatus, DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.CheckBiddingStatus, DEFAULT_IS_VISIBLE_VALUE)
-				},
-				new PermissionModel()
-				{
-					Action = ActionEnum.MenuViewProperty,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.MenuViewProperty, DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.MenuViewProperty, DEFAULT_IS_VISIBLE_VALUE)
-				},
-				new PermissionModel()
-				{
-					Action = ActionEnum.ShareProperty,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.ShareProperty, DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.ShareProperty, DEFAULT_IS_VISIBLE_VALUE)
-				},
-				new PermissionModel()
-				{
-					Action = ActionEnum.AddPhoto,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.AddPhoto, DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.AddPhoto, DEFAULT_IS_VISIBLE_VALUE)
-				},
-
-				#endregion
-
-				#region Classification Actions
-
-				new PermissionModel()
-				{
-					Action = ActionEnum.MenuAskQuestion,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.MenuAskQuestion, DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.MenuAskQuestion, DEFAULT_IS_VISIBLE_VALUE)
-				},
-				new PermissionModel()
-				{
-					Action = ActionEnum.MenuReplyQuestion,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.MenuReplyQuestion, DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.MenuReplyQuestion, DEFAULT_IS_VISIBLE_VALUE)
-				},
-				new PermissionModel()
-				{
-					Action = ActionEnum.MenuAddFavourites,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.MenuAddFavourites, DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.MenuAddFavourites, DEFAULT_IS_VISIBLE_VALUE)
-				},
-
-				#endregion
-
-				#region Topic Actions
-
-				new PermissionModel()
-				{
-					Action = ActionEnum.MessageToAgent,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.MessageToAgent,DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.MessageToAgent,DEFAULT_IS_VISIBLE_VALUE)
-				},
-				new PermissionModel()
-				{
-					Action = ActionEnum.ViewPhoneCallOfAgent,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.ViewPhoneCallOfAgent, DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.ViewPhoneCallOfAgent, DEFAULT_IS_VISIBLE_VALUE)
-				},
-
-				#endregion
-
-				#region SavingQuery Actions
-
-				new PermissionModel()
-				{
-					Action = ActionEnum.DownloadBrochure,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.DownloadBrochure, DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.DownloadBrochure, DEFAULT_IS_VISIBLE_VALUE)
-				},
-				new PermissionModel()
-				{
-					Action = ActionEnum.Request360Video,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.Request360Video, DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.Request360Video, DEFAULT_IS_VISIBLE_VALUE)
-				},
-				new PermissionModel()
-				{
-					Action = ActionEnum.RequestEnergyLabel,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.RequestEnergyLabel, DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.RequestEnergyLabel, DEFAULT_IS_VISIBLE_VALUE)
-				},
-				new PermissionModel()
-				{
-					Action = ActionEnum.ViewLocation,
-					IsEnabled = this.ApplyPropertyTypeRelatedPermissions(cc,2,ActionEnum.ViewLocation, DEFAULT_IS_ENABLED_VALUE),
-					IsVisible = this.ApplyPropertyTypeRelatedPermissions(cc,1,ActionEnum.ViewLocation, DEFAULT_IS_VISIBLE_VALUE)
-				}
-
-				#endregion
-			};
-			return permissionModel;
+			return permissions;
 		}
-
+		
 		private void ApplyPropertyStatusRelatedPermissions(int statusId, IEnumerable<PermissionModel> permissionModel)
 		{
 
