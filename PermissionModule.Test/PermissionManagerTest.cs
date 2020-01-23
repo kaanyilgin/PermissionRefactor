@@ -235,6 +235,25 @@ namespace PermissionModule.UnitTest
                 $"{action.ToString()} IsEnabled is not correct ");
         }
 
+        
+
+        [TestCase(ActionEnum.MakeOffer)]
+        [TestCase(ActionEnum.ChangeBiddingPrice)]
+        public void GetPermissions_WhenActionTypeDependsOnIsBiddingLockedAndIsBiddingLockedIsTrue_ShouldIsEnabledAndIsVisibleIsEqualToFalse(
+            ActionEnum action)
+        {
+            // Arrange
+            this.property.IsBiddingLocked = true;
+
+            // Act
+            var smartSearchPermissions = this.sut.GetPermissions(this.callContext);
+
+            // Assert
+            var smartSearchPermission = smartSearchPermissions.First(x => x.Action == action);
+            Assert.That(smartSearchPermission.IsVisible, Is.False, $"{action.ToString()} IsVisible is not correct");
+            Assert.That(smartSearchPermission.IsEnabled, Is.False, $"{action.ToString()} IsEnabled is not correct ");
+        }
+        
         private void InitializeVariables()
         {
             this.callContext = new CallContext()
