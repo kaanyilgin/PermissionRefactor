@@ -24,7 +24,6 @@ namespace PermissionModule.UnitTest
         
         [TestCase(ActionEnum.MenuViewProperty)]
         [TestCase(ActionEnum.ShareProperty)]
-        [TestCase(ActionEnum.AddPhoto)]
         [TestCase(ActionEnum.MenuAskQuestion)]
         [TestCase(ActionEnum.MenuReplyQuestion)]
         [TestCase(ActionEnum.ContextMenuMoreInformation)]
@@ -52,6 +51,9 @@ namespace PermissionModule.UnitTest
         [TestCase(ActionEnum.CheckBiddingStatus)]
         [TestCase(ActionEnum.MakeOffer)]
         [TestCase(ActionEnum.ChangeBiddingPrice)]
+        [TestCase(ActionEnum.AddPhoto)]
+        [TestCase(ActionEnum.SendingDocuments)]
+        [TestCase(ActionEnum.MenuScheduleViewing)]
         public void GetPermissionModel_WhenActionTypeIsRestricted_shouldPermissionTypeEqualToRestricted(ActionEnum actionType)
         {
             // Arrange
@@ -80,6 +82,26 @@ namespace PermissionModule.UnitTest
             // Assert
             RestrictedPermission restrictedPermission = (RestrictedPermission)permission;
             Assert.That(restrictedPermission.Rules, Has.Some.TypeOf<PrivatePermissionRule>(), $"{actionType.ToString()} action type doesnt have PermissionRuleModel");
+        }
+        
+        [TestCase(ActionEnum.SendingDocuments)]
+        [TestCase(ActionEnum.MenuScheduleViewing)]
+        [TestCase(ActionEnum.AddPhoto)]
+        [TestCase(ActionEnum.DeleteProperty)]
+        [TestCase(ActionEnum.CheckBiddingStatus)]
+        [TestCase(ActionEnum.ChangeBiddingPrice)]
+        [TestCase(ActionEnum.MakeOffer)]
+        public void GetPermissionModel_WhenActionTypeIsRelatedPropertyStatusRule_ShouldPermissionHasPropertyStatusRule(ActionEnum action)
+        {
+            // Arrange
+            this.permissionSettings.Action = action;
+            
+            // Act
+            var permission = this.sut.GetPermission(this.permissionSettings);
+
+            // Assert
+            RestrictedPermission restrictedPermission = (RestrictedPermission)permission;
+            Assert.That(restrictedPermission.Rules, Has.Some.TypeOf<PropertyStatusPermissionRule>(), $"{action.ToString()} action type doesnt have RoomStatusPermissionRule");
         }
     }
 }

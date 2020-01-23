@@ -21,8 +21,6 @@ namespace PermissionModule
 		public List<PermissionModel> GetPermissions(CallContext cc)
 		{
 			var permissionModel = this.CreatePermissionModel(cc);
-			var property = this.propertyService.GetPropertyById(cc.PropertyId);
-			this.ApplyPropertyStatusRelatedPermissions(property.StatusId, permissionModel);
 			// this.ApplyCostumerRelatedPermissions(cc, permissionModel);
 			// this.ApplyBiddingRelatedPermission(property, permissionModel);
 			return permissionModel;
@@ -131,11 +129,8 @@ namespace PermissionModule
 
 		private PermissionModel CreatePermissionModel(CallContext cc, ActionEnum action)
 		{
-			var permissionSettings = new PermissionSettings()
-			{
-				IsPrivate = cc.IsPrivate,
-				Action = action
-			};
+			var permissionSettings = GetPermissionSettings(cc);
+			permissionSettings.Action = action;
 			var permission = this.permissionFactory.GetPermission(permissionSettings);
 
 			if (permission is RestrictedPermission)
@@ -153,57 +148,17 @@ namespace PermissionModule
 			return permissionModel;
 		}
 
-		private void ApplyPropertyStatusRelatedPermissions(int statusId, IEnumerable<PermissionModel> permissionModel)
+		internal PermissionSettings GetPermissionSettings(CallContext cc)
 		{
-
-			switch (statusId)
+			var property = this.propertyService.GetPropertyById(cc.PropertyId);
+			var permissionSettings = new PermissionSettings()
 			{
-				case 1:
-					// Status is "Initial".
-					break;
-				case 2:
-					// Status is "Customers are waiting".
-					break;
-				case 3:
-					// Status is "Viewing".
-					break;
-				case 4:
-					// Status is "Bid is happening".
-					break;
-				case 5:
-					// Status is "Bid Finished".
-
-					// Context menu Make Offer Action
-					permissionModel.First(t => t.Action == ActionEnum.MakeOffer).IsEnabled = false;
-					permissionModel.First(t => t.Action == ActionEnum.MakeOffer).IsEnabled = false;
-
-					// Context menu Schedule Viewing Action
-					permissionModel.First(t => t.Action == ActionEnum.MenuScheduleViewing).IsEnabled = false;
-					permissionModel.First(t => t.Action == ActionEnum.MenuScheduleViewing).IsEnabled = false;
-
-					// Context menu Check Bidding Status Action
-					permissionModel.First(t => t.Action == ActionEnum.CheckBiddingStatus).IsEnabled = false;
-					permissionModel.First(t => t.Action == ActionEnum.CheckBiddingStatus).IsEnabled = false;
-
-					// Context menu Change Bidding Price Action
-					permissionModel.First(t => t.Action == ActionEnum.ChangeBiddingPrice).IsEnabled = false;
-					permissionModel.First(t => t.Action == ActionEnum.ChangeBiddingPrice).IsEnabled = false;
-
-					// Context menu Sending Documents Action
-					permissionModel.First(t => t.Action == ActionEnum.SendingDocuments).IsEnabled = false;
-					permissionModel.First(t => t.Action == ActionEnum.SendingDocuments).IsEnabled = false;
-
-					// Context menu Delete Property Action
-					permissionModel.First(t => t.Action == ActionEnum.DeleteProperty).IsEnabled = false;
-					permissionModel.First(t => t.Action == ActionEnum.DeleteProperty).IsEnabled = false;
-
-					// Context menu Add Photo Action
-					permissionModel.First(t => t.Action == ActionEnum.AddPhoto).IsEnabled = false;
-					permissionModel.First(t => t.Action == ActionEnum.AddPhoto).IsEnabled = false;
-					break;
-			}
+				IsPrivate = cc.IsPrivate,
+				PropertyStatusTypeId = property.StatusId,
+			};
+			return permissionSettings;
 		}
-		
+
 		private void ApplyBiddingRelatedPermission(Property property, List<PermissionModel> permissionModel)
 		{
 			if (property.IsBiddingLocked.GetValueOrDefault() == false)

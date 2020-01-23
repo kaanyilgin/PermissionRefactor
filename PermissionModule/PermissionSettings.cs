@@ -4,5 +4,6 @@ namespace PermissionModule
     {
         public ActionEnum Action { get; set; }
         public bool IsPrivate { get; set; }
+        public int PropertyStatusTypeId { get; set; }
     }
 }
